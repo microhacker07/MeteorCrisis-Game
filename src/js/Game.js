@@ -4,18 +4,18 @@ MeteorCrisis.StateGame = function(game) {
 	var space;
 	var stars1;
 	var stars2;
-	
+
     var player;
 	var meteors;
 	var score;
 	var scoreText
-	
+
 	var weapon;
 	//var bullets;
-	
+
 	var fireButton;
 	var cursors;
-	
+
 	var KeyW;
 	var KeyS;
 	var KeyA;
@@ -27,36 +27,36 @@ MeteorCrisis.StateGame = function(game) {
 MeteorCrisis.StateGame.prototype = {
 
     create: function() {
-		
+
 		this.physics.startSystem(Phaser.Physics.ARCADE);
-		
+
 		//Adds Simple Background
         background = this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'background');
 		stars1 = this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'stars1');
 		stars2 = this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'stars2');
-		
+
 		//Player Laser Gun
 		weapon = this.add.weapon(-1, 'laser');
 		weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
 		weapon.bulletSpeed = 600;
 		weapon.fireRate = 400;
-		
+
 		player = this.add.sprite(45, this.world.centerY, 'spacecraft');
 		player.enableBody = true;
 		this.physics.arcade.enable(player);
 		player.body.collideWorldBounds = true;
 		player.animations.add('idle', [0, 1], 5, true);
-		
+
 		weapon.trackSprite(player, 82, 24, true);
-		
+
 		meteors = this.add.group();
 		meteors.enableBody = true;
 		meteors.physicsBodyType = Phaser.Physics.ARCADE;
 		this.time.events.loop(1300, this.createMeteor, this);
-		
+
 		score = 0;
 		scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#FFF' });
-		
+
 		cursors = this.input.keyboard.createCursorKeys();
 		fireButton = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 		KeyW = this.input.keyboard.addKey(Phaser.Keyboard.W);
@@ -64,101 +64,99 @@ MeteorCrisis.StateGame.prototype = {
 		KeyA = this.input.keyboard.addKey(Phaser.Keyboard.A);
 		KeyD = this.input.keyboard.addKey(Phaser.Keyboard.D);
     },
-	
+
 	createMeteor: function() {
-		
+
     var meteor = meteors.create(800, this.world.randomY - 40, 'meteor');
 	meteor.scale.setTo(2, 2);
 
 	},
-	
+
 	update: function() {
 		//Scrolls Background
 		background.tilePosition.x += -1.5;
 		stars1.tilePosition.x += -1.6;
 		stars2.tilePosition.x += -1.85;
-		
+
 		this.physics.arcade.overlap(weapon.bullets, meteors, this.laserHitMeteor, null, this);
 		this.physics.arcade.overlap(player, meteors, this.meteorHitPlayer, null, this);
-		
+
 		player.body.velocity.y = 0;
 		player.body.velocity.x = 0;
-		
+
 		if (cursors.down.isDown || KeyS.isDown)
 		{
 			//Move player down
 			player.body.velocity.y = 250;
 
 		}
-		
+
 		if (cursors.up.isDown || KeyW.isDown)
 		{
 			//Move player up
 			player.body.velocity.y = -250;
 
 		}
-		
+
 		if (cursors.left.isDown || KeyA.isDown)
 		{
-			
+
 			player.body.velocity.x = -250;
 
 		}
-		
+
 		if (cursors.right.isDown || KeyD.isDown)
 		{
-			
+
 			player.body.velocity.x = 250;
-			
+
 		}
-		
+
 		if (fireButton.isDown)
         {
             weapon.fire();
         }
-		
+
 		player.animations.play('idle');
-		
+
 		meteors.setAll('x', -5, true, true, 1);
 		meteors.forEach(this.checkMeteor, this, true);
-		
+
 	},
-	
+
 	checkMeteor: function(meteor) {
         if (meteor.x < -85)
         {
             meteors.remove(meteor, true);
         }
 	},
-	
+
 	laserHitMeteor: function(bullet, meteor) {
 
-		weapon.killAll();
+		weapon.bullets.remove(bullet, true);
 		meteors.remove(meteor, true);
-		
+
 		score += 10;
 		scoreText.text = 'Score: ' + score;
 	},
-	
+
 	meteorHitPlayer: function(player, meteor) {
 		var explosion = this.add.sprite(player.centerX, player.centerY, 'explosion');
 		explosion.scale.setTo(2, 2);
 		explosion.animations.add('explode', [0, 1, 2], 2, false);
 		explosion.animations.play('explode');
 		weapon.trackSprite(player, -810, 24, true);
-		
+
 		this.add.tween(explosion).to( { alpha: 0 }, 250, "Linear", true, 1000);
-		
+
 		player.kill();
 		meteors.remove(meteor, true);
-		
-		
-		
+
 		this.time.events.add(3000, this.gameOver, this);
 	},
-	
+
 	gameOver: function () {
-		
+
         this.state.start('MainMenu');
 
     }
