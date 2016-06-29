@@ -13,3 +13,4 @@ Semantic Versioning is used to version the game.
 - [ ] Add a game-over menu when killed 
 - [ ] Record high score
 - [ ] Make more meteors as score increases 
+- [X] Make explodison spawn better
