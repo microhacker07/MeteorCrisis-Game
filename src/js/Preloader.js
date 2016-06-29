@@ -26,7 +26,7 @@ MeteorCrisis.StatePreloader.prototype = {
 		this.load.spritesheet('button', 'assets/button.png', 160, 80);
 		this.load.image('meteor', 'assets/meteor.png');
 		this.load.image('laser', 'assets/laser.png');
-		this.load.spritesheet('explosion', 'assets/explosion.png', 50, 38);
+		this.load.spritesheet('explosion', 'assets/explosion.png', 35, 35);
 		this.load.spritesheet('spacecraft', 'assets/spacecraft.png', 82, 48);
 		
 		this.load.onFileComplete.add(this.fileLoaded, this);

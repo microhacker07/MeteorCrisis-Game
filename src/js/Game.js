@@ -7,6 +7,8 @@ MeteorCrisis.StateGame = function(game) {
 
     var player;
 	var meteors;
+	var meteorDifficultly;
+	
 	var score;
 	var scoreText
 
@@ -48,11 +50,11 @@ MeteorCrisis.StateGame.prototype = {
 		player.animations.add('idle', [0, 1], 5, true);
 
 		weapon.trackSprite(player, 82, 24, true);
-
+		
 		meteors = this.add.group();
 		meteors.enableBody = true;
 		meteors.physicsBodyType = Phaser.Physics.ARCADE;
-		this.time.events.loop(1300, this.createMeteor, this);
+		this.time.events.loop(1500, this.createMeteor, this);
 
 		score = 0;
 		scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#FFF' });
@@ -141,12 +143,16 @@ MeteorCrisis.StateGame.prototype = {
 	},
 
 	meteorHitPlayer: function(player, meteor) {
-		var explosion = this.add.sprite(player.centerX, player.centerY, 'explosion');
-		explosion.scale.setTo(2, 2);
+		var playerClone = this.add.sprite(player.x, player.y, 'spacecraft');
+		
+		var explosion = this.add.sprite(player.x - 41, player.y - 48, 'explosion');
+		explosion.scale.setTo(4, 4);
 		explosion.animations.add('explode', [0, 1, 2], 2, false);
 		explosion.animations.play('explode');
+		
 		weapon.trackSprite(player, -810, 24, true);
 
+		this.add.tween(playerClone).to( { alpha: 0 }, 250, "Linear", true, 500);
 		this.add.tween(explosion).to( { alpha: 0 }, 250, "Linear", true, 1000);
 
 		player.kill();
