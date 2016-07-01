@@ -1,4 +1,6 @@
 MeteorCrisis.StateGame = function(game) {
+	
+	var highscore;
 
 	//Variables
 	var space;
@@ -6,6 +8,7 @@ MeteorCrisis.StateGame = function(game) {
 	var stars2;
 
     var player;
+	
 	var meteors;
 	var meteorDifficultly;
 	
@@ -13,7 +16,6 @@ MeteorCrisis.StateGame = function(game) {
 	var scoreText
 
 	var weapon;
-	//var bullets;
 
 	var fireButton;
 	var cursors;
@@ -41,7 +43,7 @@ MeteorCrisis.StateGame.prototype = {
 		weapon = this.add.weapon(-1, 'laser');
 		weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
 		weapon.bulletSpeed = 600;
-		weapon.fireRate = 400;
+		weapon.fireRate = 800;
 
 		player = this.add.sprite(45, this.world.centerY, 'spacecraft');
 		player.enableBody = true;
@@ -54,8 +56,9 @@ MeteorCrisis.StateGame.prototype = {
 		meteors = this.add.group();
 		meteors.enableBody = true;
 		meteors.physicsBodyType = Phaser.Physics.ARCADE;
-		this.time.events.loop(1500, this.createMeteor, this);
-
+		meteorDifficultly = 0;
+		this.time.events.loop(1500 - meteorDifficultly, this.createMeteor, this);
+		
 		score = 0;
 		scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#FFF' });
 
@@ -68,10 +71,10 @@ MeteorCrisis.StateGame.prototype = {
     },
 
 	createMeteor: function() {
-
-    var meteor = meteors.create(800, this.world.randomY - 40, 'meteor');
-	meteor.scale.setTo(2, 2);
-
+	
+		var meteor = meteors.create(800, this.world.randomY - 40, 'meteor');
+		meteor.scale.setTo(2, 2);
+		meteorDifficultly += 5;
 	},
 
 	update: function() {
@@ -134,12 +137,28 @@ MeteorCrisis.StateGame.prototype = {
 	},
 
 	laserHitMeteor: function(bullet, meteor) {
-
+		
+		var meteorBits = this.game.add.emitter(meteor.x + 40, meteor.y + 40, 100);
+		meteorBits.makeParticles('meteor');
+		meteorBits.minParticleScale = 0.1;
+		meteorBits.maxParticleScale = 1;
+		meteorBits.gravity = 0;
+		meteorBits.start(true, null, null, 5);
+		
+		var explosionMeteor = this.add.sprite(meteor.x - 20, meteor.y - 20, 'explosion');
+		explosionMeteor.scale.setTo(3, 3);
+		explosionMeteor.animations.add('explode', [0, 1, 1, 2], 3, false);
+		explosionMeteor.animations.play('explode');
+	
 		weapon.bullets.remove(bullet, true);
 		meteors.remove(meteor, true);
+		
+		this.add.tween(explosionMeteor).to( { alpha: 0 }, 250, "Linear", true, 500);
 
 		score += 10;
 		scoreText.text = 'Score: ' + score;
+		
+		meteorDifficultly += 10;
 	},
 
 	meteorHitPlayer: function(player, meteor) {
@@ -147,7 +166,7 @@ MeteorCrisis.StateGame.prototype = {
 		
 		var explosion = this.add.sprite(player.x - 41, player.y - 48, 'explosion');
 		explosion.scale.setTo(4, 4);
-		explosion.animations.add('explode', [0, 1, 2], 2, false);
+		explosion.animations.add('explode', [0, 1 , 1, 2, 2], 3, false);
 		explosion.animations.play('explode');
 		
 		weapon.trackSprite(player, -810, 24, true);
@@ -157,6 +176,10 @@ MeteorCrisis.StateGame.prototype = {
 
 		player.kill();
 		meteors.remove(meteor, true);
+		
+		if(this.highscore <= score) {
+			highscore = score;
+		}
 
 		this.time.events.add(3000, this.gameOver, this);
 	},
